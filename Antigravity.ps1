@@ -44,6 +44,66 @@ $Paths = @{
     Roaming  = if ($OS_Win) { $env:APPDATA } elseif ($OS_Mac) { "$HomePath/Library/Application Support" } else { "$HomePath/.config" }
 }
 
+# Resolve every Antigravity location in one place.  On macOS the bundle ID is
+# read from the installed application first; the fallback is the identifier
+# used by the current Antigravity distribution.
+function Get-AntigravityPaths {
+    $bundleId = "com.google.antigravity"
+    $appName = "Antigravity"
+
+    if ($OS_Mac) {
+        $appBundles = @(
+            "/Applications/Antigravity.app",
+            "$HomePath/Applications/Antigravity.app"
+        )
+        foreach ($bundle in $appBundles) {
+            $infoPlist = Join-Path $bundle "Contents/Info.plist"
+            if (Test-Path $infoPlist) {
+                $detectedId = & /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" $infoPlist 2>$null
+                $detectedName = & /usr/libexec/PlistBuddy -c "Print :CFBundleName" $infoPlist 2>$null
+                if ($detectedId) { $bundleId = "$detectedId".Trim() }
+                if ($detectedName) { $appName = "$detectedName".Trim() }
+                break
+            }
+        }
+
+        return [PSCustomObject]@{
+            BundleIdentifier = $bundleId
+            Config = @("$HomePath/Library/Preferences/$bundleId.plist")
+            Cache = @(
+                "$HomePath/Library/Caches/$bundleId",
+                "$HomePath/Library/Caches/$appName"
+            ) | Select-Object -Unique
+            Logs = @(
+                "$HomePath/Library/Logs/$bundleId",
+                "$HomePath/Library/Logs/$appName"
+            ) | Select-Object -Unique
+            State = @("$HomePath/Library/Saved Application State/$bundleId.savedState")
+            UserData = @("$HomePath/Library/Application Support/$appName")
+        }
+    }
+
+    if ($OS_Win) {
+        return [PSCustomObject]@{
+            BundleIdentifier = $null
+            Config = @("$env:APPDATA\Antigravity")
+            Cache = @("$env:LOCALAPPDATA\Antigravity\Cache", "$env:LOCALAPPDATA\Antigravity\Code Cache")
+            Logs = @("$env:APPDATA\Antigravity\logs")
+            State = @()
+            UserData = @("$env:APPDATA\Antigravity")
+        }
+    }
+
+    return [PSCustomObject]@{
+        BundleIdentifier = $null
+        Config = @("$HomePath/.config/Antigravity")
+        Cache = @("$HomePath/.cache/Antigravity")
+        Logs = @("$HomePath/.local/state/Antigravity/logs")
+        State = @()
+        UserData = @("$HomePath/.config/Antigravity")
+    }
+}
+
 # --- UI Helpers ---
 
 function Show-Header {
@@ -99,7 +159,8 @@ function Clear-Junk {
         }
     }
     else {
-        Show-Info "Skip: $Description (Not Found)"
+        Show-Info "Not found: $Description"
+        Write-Host "    Checked: $Path" -ForegroundColor DarkGray
     }
 }
 
@@ -115,29 +176,18 @@ function Invoke-Cleaner {
     if ($Paths.WinTemp) { Clear-Junk -Path $Paths.WinTemp -Description "OS Temp" -DryRun:$DryRun }
     if ($Paths.Prefetch) { Clear-Junk -Path $Paths.Prefetch -Description "Prefetch" -DryRun:$DryRun }
     
-    # Application Paths (Antigravity/IDE Traces)
-    $TargetPaths = @()
-    
-    if ($OS_Win) {
-        $TargetPaths += "$($Paths.Local)\Antigravity"
-        $TargetPaths += "$($Paths.Roaming)\Antigravity"
-        $TargetPaths += "$($Paths.Local)\JetBrains"
-        $TargetPaths += "$($Paths.Local)\VSCode\Cache"
+    # Only disposable Antigravity data is cleaned automatically. Configuration,
+    # saved state, and Application Support are user data and are never removed.
+    $antigravityPaths = Get-AntigravityPaths
+    foreach ($path in $antigravityPaths.Cache) {
+        Clear-Junk -Path $path -Description "Antigravity Cache" -DryRun:$DryRun
     }
-    elseif ($OS_Mac) {
-        $TargetPaths += "$HomePath/Library/Preferences/Antigravity"
-        $TargetPaths += "$HomePath/Library/Caches/JetBrains"
-        $TargetPaths += "$HomePath/Library/Application Support/Code/User/workspaceStorage"
+    foreach ($path in $antigravityPaths.Logs) {
+        Clear-Junk -Path $path -Description "Antigravity Logs" -DryRun:$DryRun
     }
-    else {
-        # Linux
-        $TargetPaths += "$HomePath/.config/Antigravity"
-        $TargetPaths += "$HomePath/.cache/JetBrains"
-    }
-    
-    foreach ($path in $TargetPaths) {
-        Clear-Junk -Path $path -Description "App Trace" -DryRun:$DryRun
-    }
+    Show-Info "Protected Antigravity user data (backup or confirmation required):"
+    @($antigravityPaths.Config) + @($antigravityPaths.State) + @($antigravityPaths.UserData) |
+        Select-Object -Unique | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
     
     Show-Success "Cleaning Completed."
     Wait-Key
@@ -412,10 +462,14 @@ function Invoke-BackupAntigravityApp {
     Show-Header
     Show-Info "Backup Antigravity Desktop App"
     
-    $agPath = if ($OS_Win) { "$env:APPDATA\Antigravity" } elseif ($OS_Mac) { "$HomePath/Library/Application Support/Antigravity" } else { "$HomePath/.config/Antigravity" }
-    
-    if (!(Test-Path $agPath)) {
-        Show-Warning "Antigravity Desktop App data not found."
+    $antigravityPaths = Get-AntigravityPaths
+    $backupGroups = @("Config", "State", "UserData")
+    $detectedPaths = @($backupGroups | ForEach-Object { $antigravityPaths.$_ } | Where-Object { Test-Path $_ })
+
+    if ($detectedPaths.Count -eq 0) {
+        Show-Warning "Antigravity Desktop App data was not found. Checked:"
+        $backupGroups | ForEach-Object { $antigravityPaths.$_ } | Select-Object -Unique |
+            ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         Wait-Key
         return
     }
@@ -426,7 +480,24 @@ function Invoke-BackupAntigravityApp {
     Show-Info "Backing up Antigravity App Data..."
     try {
         if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force > $null }
-        Copy-Item -Path "$agPath\*" -Destination $dest -Recurse -Force -ErrorAction Stop
+        $backupItems = @()
+        foreach ($group in $backupGroups) {
+            $index = 0
+            foreach ($sourcePath in $antigravityPaths.$group) {
+                if (Test-Path $sourcePath) {
+                    $relativePath = "Payload/$group/$index"
+                    $targetPath = Join-Path $dest $relativePath
+                    New-Item -ItemType Directory -Path (Split-Path $targetPath -Parent) -Force > $null
+                    Copy-Item -Path $sourcePath -Destination $targetPath -Recurse -Force -ErrorAction Stop
+                    $backupItems += [PSCustomObject]@{
+                        Group = $group
+                        Index = $index
+                        RelativePath = $relativePath
+                    }
+                }
+                $index++
+            }
+        }
         
         $meta = @{
             Browser     = "Antigravity Desktop"
@@ -434,7 +505,9 @@ function Invoke-BackupAntigravityApp {
             Email       = "Desktop App"
             Date        = $timestamp
             Mode        = "Full"
-        } | ConvertTo-Json
+            Items       = $backupItems
+            BundleIdentifier = $antigravityPaths.BundleIdentifier
+        } | ConvertTo-Json -Depth 4
         $meta | Out-File (Join-Path $dest "meta.json")
         
         Show-Success "App Backup Complete!"
@@ -487,7 +560,8 @@ function Invoke-RestoreSession {
         $destPath = ""
         
         if ($target.Header.Browser -eq "Antigravity Desktop") {
-            $destPath = if ($OS_Win) { "$env:APPDATA\Antigravity" } elseif ($OS_Mac) { "$HomePath/Library/Application Support/Antigravity" } else { "$HomePath/.config/Antigravity" }
+            $antigravityPaths = Get-AntigravityPaths
+            $destPath = ($antigravityPaths.UserData | Select-Object -First 1)
             Show-Info "Restoring Antigravity Desktop App..."
         }
         else {
@@ -498,6 +572,12 @@ function Invoke-RestoreSession {
         }
         
         Show-Warning "Restoring will OVERWRITE data in: $destPath"
+        if ($target.Header.Browser -eq "Antigravity Desktop" -and $target.Header.Items) {
+            foreach ($item in $target.Header.Items) {
+                $resolvedPaths = @($antigravityPaths | Select-Object -ExpandProperty $item.Group)
+                Write-Host "    $($resolvedPaths[[int]$item.Index])" -ForegroundColor DarkGray
+            }
+        }
         $confirm = Read-Host "  > Are you sure? (Y/N)"
         if ($confirm -eq "Y") {
             try {
@@ -516,8 +596,24 @@ function Invoke-RestoreSession {
                     }
                 }
                 
-                # Restore
-                Copy-Item -Path "$($target.Path)\*" -Destination $destPath -Recurse -Force -ErrorAction Stop
+                # New Antigravity backups retain the category and index so each
+                # item is restored through the same centralized path resolver.
+                if ($target.Header.Browser -eq "Antigravity Desktop" -and $target.Header.Items) {
+                    foreach ($item in $target.Header.Items) {
+                        $resolvedPaths = @($antigravityPaths | Select-Object -ExpandProperty $item.Group)
+                        $itemDestination = $resolvedPaths[[int]$item.Index]
+                        if (!$itemDestination) { throw "No restore path for $($item.Group)[$($item.Index)]" }
+                        $itemSource = Join-Path $target.Path $item.RelativePath
+                        New-Item -ItemType Directory -Path (Split-Path $itemDestination -Parent) -Force > $null
+                        Copy-Item -Path $itemSource -Destination $itemDestination -Recurse -Force -ErrorAction Stop
+                    }
+                }
+                else {
+                    # Compatibility with backups created before categorized paths.
+                    if (!(Test-Path $destPath)) { New-Item -ItemType Directory -Path $destPath -Force > $null }
+                    Get-ChildItem -Path $target.Path -Force | Where-Object { $_.Name -ne "meta.json" } |
+                        Copy-Item -Destination $destPath -Recurse -Force -ErrorAction Stop
+                }
                 Show-Success "Restore Successful!"
             }
             catch {
