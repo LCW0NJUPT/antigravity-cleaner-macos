@@ -217,10 +217,11 @@ function Get-BrowserProfiles {
         }
         
         $profiles += [PSCustomObject]@{
-            Browser = $BrowserName
-            Name    = $dir.Name
-            Path    = $dir.FullName
-            Email   = $email
+            Browser     = $BrowserName
+            Name        = $dir.Name
+            Path        = $dir.FullName
+            UserDataPath = $UserDataPath
+            Email       = $email
         }
     }
     return $profiles
@@ -314,7 +315,94 @@ function Invoke-RegionInspector {
     Wait-Key
 }
 
-# --- Enhanced Session Manager ---
+function Get-BrowserProcessName {
+    param([string]$BrowserName)
+
+    if ($OS_Mac) {
+        return switch -Wildcard ($BrowserName) {
+            "*Chrome*" { "Google Chrome" }
+            "*Edge*" { "Microsoft Edge" }
+            "*Brave*" { "Brave Browser" }
+            "*Opera*" { "Opera" }
+        }
+    }
+
+    return switch -Wildcard ($BrowserName) {
+        "*Chrome*" { "chrome" }
+        "*Edge*" { "msedge" }
+        "*Brave*" { "brave" }
+        "*Opera*" { "opera" }
+    }
+}
+
+function Stop-BrowserForConsistentCopy {
+    param([string]$BrowserName, [int]$TimeoutSeconds = 10)
+
+    $processName = Get-BrowserProcessName -BrowserName $BrowserName
+    if (!$processName) { throw "No process mapping exists for $BrowserName." }
+
+    $running = @(Get-Process -Name $processName -ErrorAction SilentlyContinue)
+    if ($running.Count -eq 0) { return }
+
+    Stop-Process -InputObject $running -Force -ErrorAction Stop
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        Start-Sleep -Milliseconds 200
+        $running = @(Get-Process -Name $processName -ErrorAction SilentlyContinue)
+    } while ($running.Count -gt 0 -and (Get-Date) -lt $deadline)
+
+    if ($running.Count -gt 0) {
+        throw "$BrowserName did not close within $TimeoutSeconds seconds. Backup was not started."
+    }
+}
+
+function Copy-BrowserBackupPayload {
+    param(
+        [Parameter(Mandatory)]$Profile,
+        [Parameter(Mandatory)][string]$Destination,
+        [ValidateSet("Light", "Full")][string]$Mode
+    )
+
+    $userDataDestination = Join-Path $Destination "User Data"
+    $profileDestination = Join-Path $userDataDestination $Profile.Name
+    New-Item -ItemType Directory -Path $profileDestination -Force -ErrorAction Stop > $null
+
+    $localStateSource = Join-Path $Profile.UserDataPath "Local State"
+    if (!(Test-Path -LiteralPath $localStateSource -PathType Leaf)) {
+        throw "Required User Data file is missing: Local State"
+    }
+    Copy-Item -LiteralPath $localStateSource -Destination (Join-Path $userDataDestination "Local State") -Force -ErrorAction Stop
+
+    if ($Mode -eq "Full") {
+        Copy-Item -Path (Join-Path $Profile.Path "*") -Destination $profileDestination -Recurse -Force -ErrorAction Stop
+        return
+    }
+
+    # Chromium has used both <profile>/Cookies and <profile>/Network/Cookies.
+    $cookieRelativePath = @("Cookies", (Join-Path "Network" "Cookies")) |
+        Where-Object { Test-Path -LiteralPath (Join-Path $Profile.Path $_) -PathType Leaf } |
+        Select-Object -First 1
+    if (!$cookieRelativePath) { throw "Required profile file is missing: Cookies" }
+
+    $files = @($cookieRelativePath, "Login Data", "Web Data", "Preferences", "Secure Preferences", "Extension Cookies") | Select-Object -Unique
+    foreach ($relativePath in $files) {
+        $source = Join-Path $Profile.Path $relativePath
+        if (!(Test-Path -LiteralPath $source -PathType Leaf)) { continue }
+        $target = Join-Path $profileDestination $relativePath
+        $targetParent = Split-Path -Parent $target
+        New-Item -ItemType Directory -Path $targetParent -Force -ErrorAction Stop > $null
+        Copy-Item -LiteralPath $source -Destination $target -Force -ErrorAction Stop
+    }
+
+    foreach ($relativePath in @("Local Extension Settings", "Sync Data", "Local Storage", "Databases")) {
+        $source = Join-Path $Profile.Path $relativePath
+        if (!(Test-Path -LiteralPath $source -PathType Container)) { continue }
+        $target = Join-Path $profileDestination $relativePath
+        New-Item -ItemType Directory -Path $target -Force -ErrorAction Stop > $null
+        Copy-Item -Path (Join-Path $source "*") -Destination $target -Recurse -Force -ErrorAction Stop
+    }
+}
+
 # --- Enhanced Session Manager ---
 function Invoke-BackupSession {
     Show-Header
@@ -351,6 +439,10 @@ function Invoke-BackupSession {
         Show-Info "Select Backup Mode:"
         Write-Host "  [1] Light (Login & Sessions Only) - ~20MB - Quick"
         Write-Host "  [2] Full (Entire Profile) - ~500MB+ - Complete"
+        if ($OS_Mac) {
+            Show-Warning "macOS Keychain protects Chromium encryption keys. This backup does NOT export Keychain items."
+            Show-Warning "A light backup cannot promise complete login migration to another Mac or user account."
+        }
         $mode = Read-Host "  > Select Mode"
         
         $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
@@ -358,35 +450,20 @@ function Invoke-BackupSession {
         $tag = if ($mode -eq "1") { "Light" } else { "Full" }
         $dest = Join-Path $SessionDataPath "$($p.Browser)\$safeEmail\_$tag`_$timestamp"
         
+        Show-Warning "$($p.Browser) must close to create a consistent backup. Unsaved browser work may be lost."
+        $closeConfirmation = Read-Host "  > Close the browser and continue? (Y/N)"
+        if ($closeConfirmation -ne "Y") {
+            Show-Warning "Backup cancelled; no files were copied."
+            Wait-Key
+            return
+        }
+
         Show-Info "Backing up $($p.Browser) ($($p.Email))..."
+        $metaPath = Join-Path $dest "meta.json"
         try {
             if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force > $null }
-            
-            if ($mode -eq "1") {
-                # Light Mode: Specific files only
-                $essentialFiles = @(
-                    "Cookies", "Login Data", "Web Data", "Preferences", "Secure Preferences", "Extension Cookies", "Local State"
-                )
-                $essentialFolders = @("Local Extension Settings", "Sync Data", "Local Storage", "Databases")
-                
-                foreach ($file in $essentialFiles) {
-                    $fPath = Join-Path $p.Path $file
-                    if (Test-Path $fPath) { Copy-Item -Path $fPath -Destination $dest -Force -ErrorAction SilentlyContinue }
-                }
-                foreach ($folder in $essentialFolders) {
-                    $dPath = Join-Path $p.Path $folder
-                    if (Test-Path $dPath) { 
-                        $targetDir = Join-Path $dest $folder
-                        New-Item -ItemType Directory -Path $targetDir -Force > $null
-                        Copy-Item -Path "$dPath\*" -Destination $targetDir -Recurse -Force -ErrorAction SilentlyContinue 
-                    }
-                }
-                
-            }
-            else {
-                # Full Mode
-                Copy-Item -Path "$($p.Path)\*" -Destination $dest -Recurse -Force -ErrorAction Stop
-            }
+            Stop-BrowserForConsistentCopy -BrowserName $p.Browser
+            Copy-BrowserBackupPayload -Profile $p -Destination $dest -Mode $tag
             
             # Save metadata
             $meta = @{
@@ -395,13 +472,25 @@ function Invoke-BackupSession {
                 Email       = $p.Email
                 Date        = $timestamp
                 Mode        = $tag
+                Status      = "Complete"
+                UserDataRelativePath = "User Data"
+                LocalStateRelativePath = "User Data/Local State"
+                ProfileRelativePath = "User Data/$($p.Name)"
+                KeychainExported = $false
             } | ConvertTo-Json
-            $meta | Out-File (Join-Path $dest "meta.json")
+            $meta | Out-File $metaPath -Encoding utf8 -ErrorAction Stop
             
             Show-Success "Backup ($tag) Saved to:"
             Write-Host "  $dest" -ForegroundColor White
         }
         catch {
+            $failedMeta = @{
+                Browser = $p.Browser; ProfileName = $p.Name; Email = $p.Email; Date = $timestamp; Mode = $tag
+                Status = "Failed"; Error = $_.Exception.Message
+                UserDataRelativePath = "User Data"; LocalStateRelativePath = "User Data/Local State"
+                ProfileRelativePath = "User Data/$($p.Name)"; KeychainExported = $false
+            } | ConvertTo-Json
+            $failedMeta | Out-File $metaPath -Encoding utf8 -ErrorAction SilentlyContinue
             Show-Error "Backup Failed: $_"
         }
     }
@@ -468,7 +557,8 @@ function Invoke-RestoreSession {
         
         Write-Host "  [$i] $modeStr $($json.Browser)" -NoNewline
         Write-Host " - $($json.Email)" -ForegroundColor Cyan -NoNewline
-        Write-Host " ($($json.Date))" -ForegroundColor DarkGray
+        $status = if ($json.Status) { $json.Status } else { "Legacy" }
+        Write-Host " ($($json.Date), $status)" -ForegroundColor DarkGray
         
         $restoreList += [PSCustomObject]@{
             Header = $json
@@ -483,6 +573,12 @@ function Invoke-RestoreSession {
     
     if ($sel -match "^\d+$" -and [int]$sel -le $restoreList.Count -and [int]$sel -gt 0) {
         $target = $restoreList[[int]$sel - 1]
+
+        if ($target.Header.Status -eq "Failed" -or $target.Header.Status -eq "Incomplete") {
+            Show-Error "This backup is marked $($target.Header.Status) and cannot be restored."
+            Wait-Key
+            return
+        }
         
         $destPath = ""
         
@@ -516,8 +612,20 @@ function Invoke-RestoreSession {
                     }
                 }
                 
-                # Restore
-                Copy-Item -Path "$($target.Path)\*" -Destination $destPath -Recurse -Force -ErrorAction Stop
+                # New backups preserve the User Data root and profile as separate relative paths.
+                if ($target.Header.ProfileRelativePath) {
+                    $profileSource = Join-Path $target.Path $target.Header.ProfileRelativePath
+                    $localStateSource = Join-Path $target.Path $target.Header.LocalStateRelativePath
+                    if (!(Test-Path -LiteralPath $profileSource -PathType Container)) { throw "Backup profile payload is missing." }
+                    if (!(Test-Path -LiteralPath $localStateSource -PathType Leaf)) { throw "Backup Local State is missing." }
+                    New-Item -ItemType Directory -Path $destPath -Force -ErrorAction Stop > $null
+                    Copy-Item -Path (Join-Path $profileSource "*") -Destination $destPath -Recurse -Force -ErrorAction Stop
+                    Copy-Item -LiteralPath $localStateSource -Destination (Join-Path $browserRoot "Local State") -Force -ErrorAction Stop
+                }
+                else {
+                    # Backward compatibility for backups made before the structured layout.
+                    Copy-Item -Path "$($target.Path)\*" -Destination $destPath -Recurse -Force -ErrorAction Stop
+                }
                 Show-Success "Restore Successful!"
             }
             catch {
@@ -684,11 +792,13 @@ function Main {
     }
 }
 
-# Start
-try {
-    Main
-}
-catch {
-    Show-Error "Critical Engine Failure: $_"
-    Wait-Key
+# Start (the guard allows Pester to load functions without opening the interactive UI)
+if ($env:ANTIGRAVITY_NO_MAIN -ne "1") {
+    try {
+        Main
+    }
+    catch {
+        Show-Error "Critical Engine Failure: $_"
+        Wait-Key
+    }
 }
