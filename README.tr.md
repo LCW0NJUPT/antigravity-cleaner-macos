@@ -4,9 +4,9 @@
   <img src="docs/images/banner.png" alt="Antigravity Cleaner Banner" width="100%">
   <br>
 
-  [![Version](https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge)](https://github.com/tawroot/antigravity-cleaner/releases)
+  [![Version](https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/releases)
   [![License](https://img.shields.io/badge/License-TACL-red.svg?style=for-the-badge)](docs/LICENSE.md)
-  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=for-the-badge&logo=platform.sh)](https://github.com/tawroot/antigravity-cleaner)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=for-the-badge&logo=platform.sh)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos)
   [![Language](https://img.shields.io/badge/Language-PowerShell-yellow.svg?style=for-the-badge&logo=powershell)]()
   [![Security](https://img.shields.io/badge/Security-Zero%20Telemetry-green.svg?style=for-the-badge&logo=shields)](docs/SECURITY.md)
 </div>
@@ -69,7 +69,7 @@ Kurulum ve çalıştırma için PowerShell'i açın ve sadece aşağıdaki satı
 (Bu komut programı otomatik olarak indirir ve masaüstünüzde bir kısayol oluşturur)
 
 ```powershell
-iwr https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 -useb | iex
+iwr https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 -useb | iex
 ```
 
 *Hata alırsanız, terminali Yönetici (Administrator) olarak çalıştırın.*
@@ -158,11 +158,11 @@ Her bir modülün (Oturum Yöneticisi, Bölge Denetçisi, Ağ Araçları) adım 
 ## 📈 Proje Büyümesi (Star History)
 Büyüyoruz! Desteğiniz için teşekkürler.
 <br>
-<a href="https://star-history.com/#tawroot/antigravity-cleaner&Date">
+<a href="https://star-history.com/#LCW0NJUPT/antigravity-cleaner-macos&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date" />
  </picture>
 </a>
 
@@ -193,16 +193,16 @@ Eğer bu araç sizi saatlerce hata ayıklamaktan kurtardıysa veya Google hesab�
 Özellik önerilerinizi ve hata raporlarınızı bekliyoruz!
 
 **Nasıl Katkıda Bulunulur:**
-1.  **Özellik İstekleri:** GitHub'da [Discussions](https://github.com/tawroot/antigravity-cleaner/discussions) bölümünde paylaşın.
-2.  **Hata Raporları:** [Issues](https://github.com/tawroot/antigravity-cleaner/issues) bölümünde detaylı açıklama ile bildirin.
+1.  **Özellik İstekleri:** GitHub'da [Discussions](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/discussions) bölümünde paylaşın.
+2.  **Hata Raporları:** [Issues](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues) bölümünde detaylı açıklama ile bildirin.
 3.  **Kod:** Lisansın özel yapısı nedeniyle Pull Request kabul edilmemektedir, ancak fikirleriniz ve geri bildirimleriniz çok değerlidir!
 
 ---
 
 ## 📞 İletişim ve Topluluk
 *   **Telegram Kanalı:** [t.me/panbehnet](https://t.me/panbehnet) - Güncellemeler, ipuçları ve destek.
-*   **GitHub Issues:** [Hata bildirin veya özellik isteyin](https://github.com/tawroot/antigravity-cleaner/issues).
-*   **GitHub Discussions:** [Sohbete katılın](https://github.com/tawroot/antigravity-cleaner/discussions).
+*   **GitHub Issues:** [Hata bildirin veya özellik isteyin](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues).
+*   **GitHub Discussions:** [Sohbete katılın](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/discussions).
 
 ---
 

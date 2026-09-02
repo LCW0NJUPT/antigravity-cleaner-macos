@@ -29,12 +29,12 @@
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-iwr -useb https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 | iex
 ```
 
 ### 🍎 macOS / 🐧 Linux
 ```bash
-curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.sh | bash
 ```
 
 ---
@@ -72,13 +72,13 @@ curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/inst
 
 ## 🔗 روابط مفيدة
 
-- [موقع المشروع](https://tawroot.github.io/antigravity-cleaner)
-- [GitHub Issues](https://github.com/tawroot/antigravity-cleaner/issues)
+- [موقع المشروع](https://LCW0NJUPT.github.io/antigravity-cleaner-macos)
+- [GitHub Issues](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues)
 
 ---
 
 <div align="center">
-  <a href="https://github.com/tawroot/antigravity-cleaner">⭐ نجمة على GitHub</a>
+  <a href="https://github.com/LCW0NJUPT/antigravity-cleaner-macos">⭐ نجمة على GitHub</a>
 </div>
 
 </div>
