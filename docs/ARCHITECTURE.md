@@ -15,15 +15,20 @@ Instead of using heavy automation drivers (Selenium/Playwright), we use **File S
 *   **Profile Detection:**
     *   Scans `%LOCALAPPDATA%` for Chromium-based browsers (Chrome, Edge, Brave).
     *   Parses `Local State` and `Preferences` JSON files to map Profile Folders (e.g., `Profile 14`) to User Accounts (e.g., `user@gmail.com`).
-*   **Lock Handling:** Uses `Stop-Process` to forcefully release file locks before backup/restore operations to ensure data integrity.
+*   **Lock Handling:** Prompts before backup, stops the selected browser, verifies that it exited, and treats locked-file copy errors as backup failures rather than silently skipping files.
 
 ### 3. Backup Strategy
 *   **Light Mode (Smart Select):**
     *   Filters only critical SQLite databases (`Cookies`, `Login Data`, `Web Data`) and JSON configs.
+    *   Stores `Local State` from the browser User Data root separately from files under the selected `Default`/`Profile N` directory. Metadata records both relative locations.
+    *   Requires both `Local State` and `Cookies`; a missing or uncopyable required file produces a `Failed` backup that restore refuses to use.
     *   Ignores cache, temporary files, and heavy binary blobs (Service Workers).
     *   Result: ~95% size reduction compared to full profile copy.
 *   **Full Mode (Robocopy Equivalent):**
-    *   Recursive copy of the entire User Data directory.
+    *   Recursive copy of the selected profile plus the root-level `Local State`, preserving their User Data layout.
+
+### macOS encryption boundary
+Chromium browsers use macOS Keychain to protect encryption keys. The file backup intentionally does not attempt to export or restore Keychain records, so neither light nor full file copies guarantee that cookies or saved passwords will decrypt under another macOS user or on another Mac.
 
 ### 4. Network Stack
 *   **Connectivity Check:** Uses `.NET` classes (`System.Net.WebRequest`) for rapid HTTP status checks.

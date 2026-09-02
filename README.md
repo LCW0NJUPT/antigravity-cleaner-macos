@@ -53,7 +53,7 @@ Common errors this tool fixes:
 
 **Key Value Proposition:**
 *   **Sanction Evasion:** Tools to inspect and manage Google "Country Association".
-*   **Identity Management:** Seamlessly backup/restore browser sessions (Cookies/Logins) across system resets.
+*   **Identity Management:** Backup/restore browser profile files (Cookies/Logins) for recovery, subject to OS credential-store limitations.
 *   **Zero Dependencies:** Runs natively on Windows. No Python, No Node.js required.
 *   **Privacy First:** 100% Offline execution. No telemetry.
 
@@ -76,7 +76,7 @@ For detailed technical and security information, please refer to our Wiki:
 Stop fearing Windows re-installs. Keep your logins alive.
 *   **Smart Detection:** Auto-maps `Profile Folders` to `Email Addresses` for Chrome, Edge, Brave, and Opera.
 *   **Dual-Mode Backup:**
-    *   **Light Mode:** Backs up ONLY Logins/Cookies (~20MB). Perfect for quick portability.
+    *   **Light Mode:** Backs up selected login/session files and root-level `Local State` (~20MB). On macOS, Keychain-protected secrets are not exported, so this is not a complete login migration.
     *   **Full Mode:** Clones the entire browser identity (~500MB+).
 *   **Antigravity Desktop:** Specialized backup for the Antigravity IDE (VS Code based).
 

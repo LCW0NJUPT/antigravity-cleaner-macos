@@ -10,8 +10,12 @@
 2. Select **Option [1]** (Backup Browser Profile).
 3. Choose a profile from the list. The tool automatically detects profiles from Chrome, Edge, Brave, and Opera and maps them to their Google emails.
 4. Choose Backup Mode:
-    *   **[1] Light Mode:** Backs up essential data only (Cookies, Login Data, Preferences). Speed: Instant. Size: ~20MB. Best for quick switches.
+    *   **[1] Light Mode:** Backs up essential data only (Cookies, Login Data, Preferences and the User Data `Local State`). Speed: Instant. Size: ~20MB. Best for recovery on the same account and machine.
     *   **[2] Full Mode:** Backs up everything (Extensions, History, Cache, etc.). Speed: Slow. Size: 500MB+. Best for full migration.
+5. Confirm that the selected browser may be closed. The tool refuses to continue if the browser cannot be stopped or if required files cannot be copied consistently.
+
+#### macOS Keychain limitation
+Chrome, Edge, and Brave protect browser encryption material with macOS Keychain. This tool copies browser files but does **not** export or restore Keychain items. Cookies and saved passwords may therefore remain encrypted and unusable after moving a backup to another Mac or macOS user. Light mode must not be treated as a complete login-state migration; keep an independent recovery method and expect to sign in again.
 
 #### How to Restore
 1. Select **Option [3]** (Restore Profile) inside Session Manager.
