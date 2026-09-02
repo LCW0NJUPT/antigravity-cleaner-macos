@@ -33,9 +33,17 @@ $HomePath = if ($OS_Win) { $env:USERPROFILE } else { $env:HOME }
 $DataPath = Join-Path $PSScriptRoot "Data"
 $SessionDataPath = Join-Path $DataPath "Sessions"
 
+# GetTempPath returns the current user's effective temporary directory.  Never
+# use that directory itself as a cleanup target: it is commonly /tmp on Unix.
+$UserTempPath = [IO.Path]::GetTempPath()
+
 # --- OS Specific Paths ---
 $Paths = @{
-    Temp     = if ($OS_Win) { $env:TEMP } else { "/tmp" }
+    # Only product-owned children of the user temp directory are eligible.
+    Temp     = @(
+        (Join-Path $UserTempPath "AntigravityCleaner")
+        (Join-Path $UserTempPath "Antigravity")
+    )
     WinTemp  = if ($OS_Win) { "$env:windir\Temp" } else { $null }
     Prefetch = if ($OS_Win) { "$env:windir\Prefetch" } else { $null }
     
@@ -68,25 +76,90 @@ function Wait-Key {
 }
 
 # --- modules: Stubbed for now ---
+function Get-NormalizedCleanupPath {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $fullPath = [IO.Path]::GetFullPath($Path)
+    if (Test-Path -LiteralPath $fullPath) {
+        return (Resolve-Path -LiteralPath $fullPath -ErrorAction Stop).ProviderPath
+    }
+    return $fullPath
+}
+
+function Test-AllowedCleanupPath {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string[]]$AllowedRoots
+    )
+
+    try {
+        $normalized = Get-NormalizedCleanupPath $Path
+        $home = Get-NormalizedCleanupPath $HomePath
+        $comparison = if ($OS_Win) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+        $trimmed = $normalized.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+        $dangerousRoots = @(
+            [IO.Path]::GetPathRoot($normalized),
+            "/tmp", "/private/tmp", "/Library", $home,
+            (Join-Path $home "Library")
+        ) | Where-Object { $_ }
+
+        foreach ($dangerousRoot in $dangerousRoots) {
+            $dangerous = (Get-NormalizedCleanupPath $dangerousRoot).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+            if ([string]::Equals($trimmed, $dangerous, $comparison)) { return $false }
+        }
+
+        # A whitelisted directory must not be replaceable with a link to an
+        # unrelated tree. Links encountered as children are checked again
+        # immediately before deletion below.
+        $item = Get-Item -LiteralPath ([IO.Path]::GetFullPath($Path)) -Force -ErrorAction SilentlyContinue
+        if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { return $false }
+
+        foreach ($root in $AllowedRoots) {
+            $allowed = (Get-NormalizedCleanupPath $root).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+            $prefix = $allowed + [IO.Path]::DirectorySeparatorChar
+            if ([string]::Equals($trimmed, $allowed, $comparison) -or $trimmed.StartsWith($prefix, $comparison)) {
+                return $true
+            }
+        }
+    }
+    catch { return $false }
+    return $false
+}
+
 function Clear-Junk {
     param (
         [string]$Path,
         [string]$Description,
+        [Parameter(Mandatory)][string[]]$AllowedRoots,
         [switch]$DryRun
     )
-    if (Test-Path $Path) {
-        $files = Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue
+    if (!(Test-AllowedCleanupPath -Path $Path -AllowedRoots $AllowedRoots)) {
+        Show-Warning "Refused unsafe cleanup path: $Path"
+        return
+    }
+
+    $normalizedPath = Get-NormalizedCleanupPath $Path
+    if (Test-Path -LiteralPath $normalizedPath) {
+        $files = Get-ChildItem -LiteralPath $normalizedPath -Recurse -Force -ErrorAction SilentlyContinue
         $count = ($files | Measure-Object).Count
         $size = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
         
         if ($count -gt 0) {
-            $msg = "$Description ($Path) - Found $count items ({0:N2} MB)" -f $size
+            $msg = "$Description ($normalizedPath) - Found $count items ({0:N2} MB)" -f $size
             if ($DryRun) {
                 Show-Info "[DRY RUN] $msg"
             }
             else {
                 Try {
-                    Remove-Item -Path "$Path\*" -Recurse -Force -ErrorAction Stop
+                    foreach ($item in (Get-ChildItem -LiteralPath $normalizedPath -Force -ErrorAction Stop)) {
+                        # Defend against path replacement and links introduced
+                        # between enumeration and removal.
+                        if (!(Test-AllowedCleanupPath -Path $normalizedPath -AllowedRoots $AllowedRoots) -or
+                            !(Test-AllowedCleanupPath -Path $item.FullName -AllowedRoots @($normalizedPath))) {
+                            throw "Cleanup target escaped its allowed directory: $($item.FullName)"
+                        }
+                        Remove-Item -LiteralPath $item.FullName -Recurse -Force -ErrorAction Stop
+                    }
                     Show-Success "Cleaned: $msg"
                 }
                 Catch {
@@ -111,9 +184,11 @@ function Invoke-Cleaner {
     Show-Info "Starting System Clean..."
     
     # System Paths
-    Clear-Junk -Path $Paths.Temp -Description "Temp Files" -DryRun:$DryRun
-    if ($Paths.WinTemp) { Clear-Junk -Path $Paths.WinTemp -Description "OS Temp" -DryRun:$DryRun }
-    if ($Paths.Prefetch) { Clear-Junk -Path $Paths.Prefetch -Description "Prefetch" -DryRun:$DryRun }
+    foreach ($tempPath in $Paths.Temp) {
+        Clear-Junk -Path $tempPath -Description "Antigravity Temp Files" -AllowedRoots @($tempPath) -DryRun:$DryRun
+    }
+    if ($Paths.WinTemp) { Clear-Junk -Path $Paths.WinTemp -Description "OS Temp" -AllowedRoots @($Paths.WinTemp) -DryRun:$DryRun }
+    if ($Paths.Prefetch) { Clear-Junk -Path $Paths.Prefetch -Description "Prefetch" -AllowedRoots @($Paths.Prefetch) -DryRun:$DryRun }
     
     # Application Paths (Antigravity/IDE Traces)
     $TargetPaths = @()
@@ -136,7 +211,7 @@ function Invoke-Cleaner {
     }
     
     foreach ($path in $TargetPaths) {
-        Clear-Junk -Path $path -Description "App Trace" -DryRun:$DryRun
+        Clear-Junk -Path $path -Description "App Trace" -AllowedRoots @($path) -DryRun:$DryRun
     }
     
     Show-Success "Cleaning Completed."
@@ -685,10 +760,12 @@ function Main {
 }
 
 # Start
-try {
-    Main
-}
-catch {
-    Show-Error "Critical Engine Failure: $_"
-    Wait-Key
+if ($MyInvocation.InvocationName -ne ".") {
+    try {
+        Main
+    }
+    catch {
+        Show-Error "Critical Engine Failure: $_"
+        Wait-Key
+    }
 }
