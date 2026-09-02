@@ -10,7 +10,6 @@
 #>
 
 $host.UI.RawUI.WindowTitle = "Antigravity Cleaner Shell v4.1.0"
-$ErrorActionPreference = "SilentlyContinue"
 
 # --- Configuration & Platform Detection ---
 $AppTitle = "ANTIGRAVITY CLEANER"
@@ -74,7 +73,11 @@ function Clear-Junk {
         [string]$Description,
         [switch]$DryRun
     )
-    if (Test-Path $Path) {
+    $succeeded = 0
+    $failed = 0
+    $skipped = 0
+
+    if (Test-Path -LiteralPath $Path) {
         $files = Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue
         $count = ($files | Measure-Object).Count
         $size = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
@@ -83,15 +86,22 @@ function Clear-Junk {
             $msg = "$Description ($Path) - Found $count items ({0:N2} MB)" -f $size
             if ($DryRun) {
                 Show-Info "[DRY RUN] $msg"
+                $skipped = $count
             }
             else {
-                Try {
-                    Remove-Item -Path "$Path\*" -Recurse -Force -ErrorAction Stop
-                    Show-Success "Cleaned: $msg"
+                $items = @(Get-ChildItem -LiteralPath $Path -Force -ErrorAction SilentlyContinue)
+                foreach ($item in $items) {
+                    try {
+                        Remove-Item -LiteralPath $item.FullName -Recurse -Force -ErrorAction Stop
+                        $succeeded++
+                    }
+                    catch {
+                        $failed++
+                        Show-Error "Failed to remove '$($item.FullName)': $($_.Exception.Message)"
+                    }
                 }
-                Catch {
-                    Show-Warning "Partial Clean: $Description (Locked files skipped)"
-                }
+                if ($failed -eq 0) { Show-Success "Cleaned: $msg" }
+                else { Show-Warning "Partial clean: $Description" }
             }
         }
         else {
@@ -100,7 +110,9 @@ function Clear-Junk {
     }
     else {
         Show-Info "Skip: $Description (Not Found)"
+        $skipped = 1
     }
+    Show-Info "$Description results - succeeded: $succeeded, failed: $failed, skipped: $skipped"
 }
 
 function Invoke-Cleaner {
@@ -239,7 +251,7 @@ function Invoke-RegionInspector {
     
     $check = Read-Host "  > Launch Pre-Check? (Opens IP/Leak Test) (Y/N)"
     if ($check -eq "Y") {
-        Start-Process "https://browserleaks.com/ip"
+        Start-Process "https://browserleaks.com/ip" -ErrorAction Stop
         Write-Host "  Checking leaks... ensure 'WebRTC Leak' is NOT showing your real IP." -ForegroundColor Cyan
         Wait-Key
     }
@@ -303,7 +315,7 @@ function Invoke-RegionInspector {
         }
         
         try {
-            Start-Process $LaunchCmd -ArgumentList $LaunchArgs
+            Start-Process $LaunchCmd -ArgumentList $LaunchArgs -ErrorAction Stop
             Show-Success "Browser opened. Check the page for 'Country Association'."
         }
         catch {
@@ -360,7 +372,7 @@ function Invoke-BackupSession {
         
         Show-Info "Backing up $($p.Browser) ($($p.Email))..."
         try {
-            if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force > $null }
+            if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force -ErrorAction Stop > $null }
             
             if ($mode -eq "1") {
                 # Light Mode: Specific files only
@@ -371,14 +383,14 @@ function Invoke-BackupSession {
                 
                 foreach ($file in $essentialFiles) {
                     $fPath = Join-Path $p.Path $file
-                    if (Test-Path $fPath) { Copy-Item -Path $fPath -Destination $dest -Force -ErrorAction SilentlyContinue }
+                    if (Test-Path $fPath) { Copy-Item -Path $fPath -Destination $dest -Force -ErrorAction Stop }
                 }
                 foreach ($folder in $essentialFolders) {
                     $dPath = Join-Path $p.Path $folder
                     if (Test-Path $dPath) { 
                         $targetDir = Join-Path $dest $folder
-                        New-Item -ItemType Directory -Path $targetDir -Force > $null
-                        Copy-Item -Path "$dPath\*" -Destination $targetDir -Recurse -Force -ErrorAction SilentlyContinue 
+                        New-Item -ItemType Directory -Path $targetDir -Force -ErrorAction Stop > $null
+                        Copy-Item -Path "$dPath\*" -Destination $targetDir -Recurse -Force -ErrorAction Stop
                     }
                 }
                 
@@ -425,7 +437,7 @@ function Invoke-BackupAntigravityApp {
     
     Show-Info "Backing up Antigravity App Data..."
     try {
-        if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force > $null }
+        if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force -ErrorAction Stop > $null }
         Copy-Item -Path "$agPath\*" -Destination $dest -Recurse -Force -ErrorAction Stop
         
         $meta = @{
@@ -506,10 +518,12 @@ function Invoke-RestoreSession {
                     $procName = switch -Wildcard ($target.Header.Browser) { "*Chrome*" { "chrome" } "*Edge*" { "msedge" } "*Brave*" { "brave" } "*Opera*" { "opera" } }
                     if ($OS_Mac) {
                         $procName = switch -Wildcard ($target.Header.Browser) { "*Chrome*" { "Google Chrome" } "*Edge*" { "Microsoft Edge" } "*Brave*" { "Brave Browser" } "*Opera*" { "Opera" } }
-                        Start-Process "pkill" -ArgumentList "-x", "$procName" -NoNewWindow -Wait
+                        $stopResult = Start-Process "pkill" -ArgumentList "-x", "$procName" -NoNewWindow -Wait -PassThru -ErrorAction Stop
+                        if ($stopResult.ExitCode -ne 0 -and $stopResult.ExitCode -ne 1) { throw "pkill failed with exit code $($stopResult.ExitCode)." }
                     }
                     elseif ($OS_Lin) {
-                        Start-Process "pkill" -ArgumentList "$procName" -NoNewWindow -Wait
+                        $stopResult = Start-Process "pkill" -ArgumentList "$procName" -NoNewWindow -Wait -PassThru -ErrorAction Stop
+                        if ($stopResult.ExitCode -ne 0 -and $stopResult.ExitCode -ne 1) { throw "pkill failed with exit code $($stopResult.ExitCode)." }
                     }
                     else {
                         Stop-Process -Name $procName -Force -ErrorAction SilentlyContinue
@@ -604,34 +618,48 @@ function Invoke-NetworkReset {
     
     $confirm = Read-Host "  > Continue? (Y/N)"
     if ($confirm -ne "Y") { return }
-    
-    if ($OS_Win) {
-        Show-Info "Flushing DNS..."
-        cmd /c "ipconfig /flushdns" | Out-Null
-        
-        Show-Info "Resetting Winsock Catalog..."
-        Start-Process "netsh" -ArgumentList "winsock reset catalog" -Wait -NoNewWindow
-        
-        Show-Info "Resetting TCP/IP..."
-        Start-Process "netsh" -ArgumentList "int ip reset" -Wait -NoNewWindow
-    }
-    elseif ($OS_Mac) {
-        Show-Info "Flushing DNS (macOS)..."
-        Start-Process "sudo" -ArgumentList "killall", "-HUP", "mDNSResponder" -Wait -NoNewWindow
-    }
-    elseif ($OS_Lin) {
-        # Linux
-        Show-Info "Flushing DNS (Linux)..."
-        if (Get-Command "resolvectl" -ErrorAction SilentlyContinue) {
-            Start-Process "sudo" -ArgumentList "resolvectl", "flush-caches" -Wait -NoNewWindow
+
+    try {
+        if ($OS_Win) {
+            Show-Info "Flushing DNS..."
+            & ipconfig /flushdns | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "ipconfig /flushdns failed with exit code $LASTEXITCODE." }
+
+            Show-Info "Resetting Winsock Catalog..."
+            $process = Start-Process "netsh" -ArgumentList "winsock reset catalog" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+            if ($process.ExitCode -ne 0) { throw "netsh winsock reset failed with exit code $($process.ExitCode)." }
+
+            Show-Info "Resetting TCP/IP..."
+            $process = Start-Process "netsh" -ArgumentList "int ip reset" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+            if ($process.ExitCode -ne 0) { throw "netsh TCP/IP reset failed with exit code $($process.ExitCode)." }
         }
-        else {
-            Start-Process "sudo" -ArgumentList "systemd-resolve", "--flush-caches" -Wait -NoNewWindow
+        elseif ($OS_Mac) {
+            Show-Info "Flushing DNS (macOS)..."
+            $process = Start-Process "sudo" -ArgumentList "killall", "-HUP", "mDNSResponder" -Wait -NoNewWindow -PassThru -ErrorAction Stop
+            if ($process.ExitCode -ne 0) { throw "macOS DNS flush failed with exit code $($process.ExitCode)." }
         }
+        elseif ($OS_Lin) {
+            Show-Info "Flushing DNS (Linux)..."
+            if (Get-Command "resolvectl" -ErrorAction SilentlyContinue) {
+                $arguments = @("resolvectl", "flush-caches")
+            }
+            elseif (Get-Command "systemd-resolve" -ErrorAction SilentlyContinue) {
+                $arguments = @("systemd-resolve", "--flush-caches")
+            }
+            else {
+                throw "Neither resolvectl nor systemd-resolve is available."
+            }
+            $process = Start-Process "sudo" -ArgumentList $arguments -Wait -NoNewWindow -PassThru -ErrorAction Stop
+            if ($process.ExitCode -ne 0) { throw "Linux DNS flush failed with exit code $($process.ExitCode)." }
+        }
+
+        Show-Success "Network Reset Complete!"
+        Show-Info "If problems persist, please RESTART YOUR COMPUTER."
     }
-    
-    Show-Success "Network Reset Complete!"
-    Show-Info "If problems persist, please RESTART YOUR COMPUTER."
+    catch {
+        Show-Error "Network reset failed: $($_.Exception.Message)"
+        exit 1
+    }
     Wait-Key
 }
 
@@ -654,8 +682,8 @@ function Invoke-NetworkTools {
 
 function Main {
     # Ensure Data Dirs
-    if (!(Test-Path $DataPath)) { New-Item -ItemType Directory -Path $DataPath > $null }
-    if (!(Test-Path $SessionDataPath)) { New-Item -ItemType Directory -Path $SessionDataPath > $null }
+    if (!(Test-Path $DataPath)) { New-Item -ItemType Directory -Path $DataPath -ErrorAction Stop > $null }
+    if (!(Test-Path $SessionDataPath)) { New-Item -ItemType Directory -Path $SessionDataPath -ErrorAction Stop > $null }
 
     while ($true) {
         Show-Header
@@ -690,5 +718,5 @@ try {
 }
 catch {
     Show-Error "Critical Engine Failure: $_"
-    Wait-Key
+    exit 1
 }
