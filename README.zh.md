@@ -2,7 +2,7 @@
 ### 跨平台清理和修复工具 | 修复安装和网络问题
 
 [![Python](https://img.shields.io/badge/Made%20with-Python-blue?style=for-the-badge&logo=python)](https://python.org)
-[![OS](https://img.shields.io/badge/Platform-Win%20|%20Mac%20|%20Linux-lightgrey?style=for-the-badge)](https://github.com/tawroot/antigravity-cleaner)
+[![OS](https://img.shields.io/badge/Platform-Win%20|%20Mac%20|%20Linux-lightgrey?style=for-the-badge)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
 
@@ -91,12 +91,12 @@
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-iwr -useb https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 | iex
 ```
 
 ### 🍎 macOS / 🐧 Linux (Terminal)
 ```bash
-curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.sh | bash
 ```
 
 ---
@@ -285,9 +285,9 @@ curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/inst
 - **检查Google区域**：如果您遇到"您所在地区不可用"问题：
   [Google国家关联表单](https://policies.google.com/country-association-form)
 
-- **项目网站**：[tawroot.github.io/antigravity-cleaner](https://tawroot.github.io/antigravity-cleaner)
+- **项目网站**：[LCW0NJUPT.github.io/antigravity-cleaner-macos](https://LCW0NJUPT.github.io/antigravity-cleaner-macos)
 
-- **报告问题**：[GitHub Issues](https://github.com/tawroot/antigravity-cleaner/issues)
+- **报告问题**：[GitHub Issues](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues)
 
 ---
 
@@ -322,8 +322,8 @@ curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/inst
 ## 🛠️ 手动安装（开发者）
 
 ```bash
-git clone https://github.com/tawroot/antigravity-cleaner.git
-cd antigravity-cleaner
+git clone https://github.com/LCW0NJUPT/antigravity-cleaner-macos.git
+cd antigravity-cleaner-macos
 pip install -r src/requirements.txt
 python src/main.py
 ```
@@ -357,5 +357,5 @@ Windows清理器, macOS清理器, Linux清理器, Python脚本, 跨平台工具,
 <div align="center">
   <b>开源项目</b><br>
   <i>用开源工具赋能用户</i><br><br>
-  <a href="https://github.com/tawroot/antigravity-cleaner">⭐ 在GitHub上加星</a>
+  <a href="https://github.com/LCW0NJUPT/antigravity-cleaner-macos">⭐ 在GitHub上加星</a>
 </div>

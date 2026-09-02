@@ -2,7 +2,7 @@
 ### Кроссплатформенный инструмент очистки и восстановления | Исправление ошибок установки и сетевых проблем
 
 [![Python](https://img.shields.io/badge/Made%20with-Python-blue?style=for-the-badge&logo=python)](https://python.org)
-[![OS](https://img.shields.io/badge/Platform-Win%20|%20Mac%20|%20Linux-lightgrey?style=for-the-badge)](https://github.com/tawroot/antigravity-cleaner)
+[![OS](https://img.shields.io/badge/Platform-Win%20|%20Mac%20|%20Linux-lightgrey?style=for-the-badge)](https://github.com/LCW0NJUPT/antigravity-cleaner-macos)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
 
@@ -91,12 +91,12 @@
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-iwr -useb https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 | iex
 ```
 
 ### 🍎 macOS / 🐧 Linux (Terminal)
 ```bash
-curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.sh | bash
 ```
 
 ---
@@ -285,9 +285,9 @@ curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/inst
 - **Проверка региона Google**: Если у вас проблема "Недоступно в вашем регионе":
   [Форма ассоциации страны Google](https://policies.google.com/country-association-form)
 
-- **Сайт проекта**: [tawroot.github.io/antigravity-cleaner](https://tawroot.github.io/antigravity-cleaner)
+- **Сайт проекта**: [LCW0NJUPT.github.io/antigravity-cleaner-macos](https://LCW0NJUPT.github.io/antigravity-cleaner-macos)
 
-- **Сообщить о проблеме**: [GitHub Issues](https://github.com/tawroot/antigravity-cleaner/issues)
+- **Сообщить о проблеме**: [GitHub Issues](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues)
 
 ---
 
@@ -322,8 +322,8 @@ curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/inst
 ## 🛠️ Ручная установка (Разработчики)
 
 ```bash
-git clone https://github.com/tawroot/antigravity-cleaner.git
-cd antigravity-cleaner
+git clone https://github.com/LCW0NJUPT/antigravity-cleaner-macos.git
+cd antigravity-cleaner-macos
 pip install -r src/requirements.txt
 python src/main.py
 ```
@@ -357,5 +357,5 @@ python src/main.py
 <div align="center">
   <b>Открытый проект</b><br>
   <i>Расширение возможностей пользователей с помощью открытых инструментов</i><br><br>
-  <a href="https://github.com/tawroot/antigravity-cleaner">⭐ Поставить звезду на GitHub</a>
+  <a href="https://github.com/LCW0NJUPT/antigravity-cleaner-macos">⭐ Поставить звезду на GitHub</a>
 </div>

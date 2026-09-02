@@ -37,12 +37,12 @@
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-iwr -useb https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.ps1 | iex
 ```
 
 ### 🍎 macOS / 🐧 Linux
 ```bash
-curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/LCW0NJUPT/antigravity-cleaner-macos/main/install.sh | bash
 ```
 
 ---
@@ -109,8 +109,8 @@ curl -sL https://raw.githubusercontent.com/tawroot/antigravity-cleaner/main/inst
 ## 🛠️ دستی انسٹالیشن (ڈویلپرز)
 
 ```bash
-git clone https://github.com/tawroot/antigravity-cleaner.git
-cd antigravity-cleaner
+git clone https://github.com/LCW0NJUPT/antigravity-cleaner-macos.git
+cd antigravity-cleaner-macos
 pip install -r src/requirements.txt
 python src/main.py
 ```
@@ -119,8 +119,8 @@ python src/main.py
 
 ## 🔗 مفید روابط
 
-- **پروجیکٹ ویب سائٹ**: [tawroot.github.io/antigravity-cleaner](https://tawroot.github.io/antigravity-cleaner)
-- **مسائل کی رپورٹ**: [GitHub Issues](https://github.com/tawroot/antigravity-cleaner/issues)
+- **پروجیکٹ ویب سائٹ**: [LCW0NJUPT.github.io/antigravity-cleaner-macos](https://LCW0NJUPT.github.io/antigravity-cleaner-macos)
+- **مسائل کی رپورٹ**: [GitHub Issues](https://github.com/LCW0NJUPT/antigravity-cleaner-macos/issues)
 
 ---
 
@@ -145,7 +145,7 @@ antigravity IDE ٹھیک کریں، antigravity ان انسٹال کریں، ص�
 <div align="center">
   <b>اوپن سورس پروجیکٹ</b><br>
   <i>اوپن سورس ٹولز کے ساتھ صارفین کو بااختیار بنانا</i><br><br>
-  <a href="https://github.com/tawroot/antigravity-cleaner">⭐ GitHub پر اسٹار دیں</a>
+  <a href="https://github.com/LCW0NJUPT/antigravity-cleaner-macos">⭐ GitHub پر اسٹار دیں</a>
 </div>
 
 </div>
